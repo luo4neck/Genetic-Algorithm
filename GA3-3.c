@@ -212,111 +212,113 @@ void free_GA(GRP* p)//doing memory free..
 
 int main(int argc, char *argv[])
 {
-MPI_Init(&argc, &argv);
-MPI_Status stat;
-GRP* p;
-int i,j,itr,g,n,A,B,tmp,son,mut_p, myid, nps, trans[1];
-double cross_r, mut_r,R,ra=0.5,rb=0.5;
-/*-----------------checking the input values----------------*/
-if( argv[6]!= NULL || argv[1]==NULL || argv[2]==NULL || argv[3]==NULL || argv[4]==NULL || argv[5]==NULL)
-  {
-  printf("Please input command in this way:\nGA 10(population size) 10(number of generations) ");
-  printf("100(number of iterations) 0.95(crossover rate) 0.1(mutation rate)\n");
-  MPI_Abort(MPI_COMM_WORLD, 0);
-  }
-n = atoi(argv[1]);
-g = atoi(argv[2]);
-itr = atoi(argv[3]);
-cross_r = atof(argv[4]);
-mut_r = atof(argv[5]);
-MPI_Comm_size(MPI_COMM_WORLD, &nps);
-MPI_Comm_rank(MPI_COMM_WORLD, &myid);
-
-if(myid == 0 )
+    MPI_Init(&argc, &argv);
+    MPI_Status stat;
+    GRP* p;
+    int i,j,itr,g,n,A,B,tmp,son,mut_p, myid, nps, trans[1];
+    double cross_r, mut_r,R,ra=0.5,rb=0.5;
+    /*-----------------checking the input values----------------*/
+    if( argv[6]!= NULL || argv[1]==NULL || argv[2]==NULL || argv[3]==NULL || argv[4]==NULL || argv[5]==NULL)
     {
-    if( n!= (nps-1) )
-        {
-        printf("Please make process number 1 larger than population size.\n");
+        printf("Please input command in this way:\nGA 10(population size) 10(number of generations) ");
+        printf("100(number of iterations) 0.95(crossover rate) 0.1(mutation rate)\n");
         MPI_Abort(MPI_COMM_WORLD, 0);
-        }
-    if (cross_r>1.0 || mut_r>1.0 || mut_r>cross_r || n>100)
-        {
-        printf("Population can not be larger than 100, crossover rate must larger than mutation rate and both not larger than 1.\n");
-        MPI_Abort(MPI_COMM_WORLD, 0);
-        }
-    }
-/*-----------------checking the input values----------------*/
-
-p = alloc_GA(n);
-srand48(time(NULL));
-
-for(i=0;i<itr;i++)
-  {
-  if(myid == 0)
-    {
-    printf("\nIn iteration %d:\n\n",i+1);
-
-    for(j=0;j<n*2;j++)//randomly sorting the rank of the team to set partenrs for next robbery..
-    {
-    A=lrand48()%n;
-    B=lrand48()%n;
-    tmp = p->position[A];
-    p->position[A] = p->position[B];
-    p->position[B] = tmp;
     }
 
-    for(j=0;j<n/2;j++)//each of robber should face PD once in one iteration..
-      {
-      A = p->position[2*j];
-      B = p->position[2*j+1];
-      ra = drand48();
-      rb = drand48();
-      decide_GA(p,ra,rb,A,B);
-      }
-    
-    for(j=0;j<g;j++)//g generations happened in one iteration..
-      {
-      printf("Generation %d:\n",j+1);
-      A = lrand48()%n;
-      B = lrand48()%n;
-      while(B==A)
-      {B = lrand48()%n;}
-      
-      R = drand48();//for judgement of crossover and mutation..
-      
-      if(R<cross_r)//judge if crossover will happen..
-    	{
-    	son = lrand48()%n;
-    	mut_p = lrand48()%4;// this value tells the position of mutation happen..
-    	cross_GA(p,A,B,son,R,mut_p,mut_r);
-        print_GA(p,n);
+    n = atoi(argv[1]);
+    g = atoi(argv[2]);
+    itr = atoi(argv[3]);
+    cross_r = atof(argv[4]);
+    mut_r = atof(argv[5]);
+    MPI_Comm_size(MPI_COMM_WORLD, &nps);
+    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+
+    if(myid == 0 )
+    {
+        if( n!= (nps-1) )
+        {
+            printf("Please make process number 1 larger than population size.\n");
+            MPI_Abort(MPI_COMM_WORLD, 0);
+        }
+        if (cross_r>1.0 || mut_r>1.0 || mut_r>cross_r || n>100)
+        {
+            printf("Population can not be larger than 100, crossover rate must larger than mutation rate and both not larger than 1.\n");
+            MPI_Abort(MPI_COMM_WORLD, 0);
+        }
+    }
+    /*-----------------checking the input values----------------*/
+
+    p = alloc_GA(n);
+    srand48(time(NULL));
+
+    for(i=0;i<itr;i++)
+    {
+        if(myid == 0)
+        {
+            printf("\nIn iteration %d:\n\n",i+1);
+
+            for(j=0;j<n*2;j++)//randomly sorting the rank of the team to set partenrs for next robbery..
+            {
+                A=lrand48()%n;
+                B=lrand48()%n;
+                tmp = p->position[A];
+                p->position[A] = p->position[B];
+               p->position[B] = tmp;
 	    }
-      else printf("No crossover and mutation happened.\n");
-      }// generation for loop end here
-      
 
-    for(j=1;j<nps;j++)// sending message here..
-      {
-      trans[0] =p->his[j-1];
-      MPI_Send(trans, 1, MPI_INT, j, 0, MPI_COMM_WORLD);
-      
-      MPI_Recv(trans, 1, MPI_INT, j, 0, MPI_COMM_WORLD, &stat);
-      p->std[j-1] = p->std[j-1] + (double)trans[0] * 0.05;
-      }
-      
-  }// if end here 
-  
-  else
-    {
-    MPI_Recv(trans, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &stat);
-
-    trans[0] = fitness_GA(p,myid,trans[0]);
+            for(j=0;j<n/2;j++)//each of robber should face PD once in one iteration..
+            {
+                A = p->position[2*j];
+                B = p->position[2*j+1];
+                ra = drand48();
+                rb = drand48();
+                decide_GA(p,ra,rb,A,B);
+            }
     
-    MPI_Send(trans, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-    }
-  }// iteration for loop end here
+            for(j=0;j<g;j++)//g generations happened in one iteration..
+            {
+                printf("Generation %d:\n",j+1);
+                A = lrand48()%n;
+                B = lrand48()%n;
+                while(B==A)
+                {B = lrand48()%n;}
+      
+                R = drand48();//for judgement of crossover and mutation..
+      
+                if(R<cross_r)//judge if crossover will happen..
+              	{
+              	    son = lrand48()%n;
+                    mut_p = lrand48()%4;// this value tells the position of mutation happen..
+                    cross_GA(p,A,B,son,R,mut_p,mut_r);
+                    print_GA(p,n);
+	        }
+                else 
+		    printf("No crossover and mutation happened.\n");
+            }// generation for loop end here
+      
 
-free_GA(p);
-MPI_Finalize();
-return 0;
+            for(j=1;j<nps;j++)// sending message here..
+            {
+                trans[0] =p->his[j-1];
+                MPI_Send(trans, 1, MPI_INT, j, 0, MPI_COMM_WORLD);
+      
+                MPI_Recv(trans, 1, MPI_INT, j, 0, MPI_COMM_WORLD, &stat);
+                p->std[j-1] = p->std[j-1] + (double)trans[0] * 0.05;
+            }
+      
+        }// if end here 
+  
+        else
+        {
+            MPI_Recv(trans, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &stat);
+
+            trans[0] = fitness_GA(p,myid,trans[0]);
+    
+            MPI_Send(trans, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        }
+    }// iteration for loop end here
+
+    free_GA(p);
+    MPI_Finalize();
+    return 0;
 }
