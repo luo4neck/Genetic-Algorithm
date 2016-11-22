@@ -140,50 +140,47 @@ void decide_GA(GRP* p, double ra, double rb, int A,int B)
 
 void cross_GA(GRP* p,int a,int b,int son,double R,int mut_p, double mut_r)//a and b exchange a part of genes
 {//c is the number of the son from a and b, 2 digits from A and 2 from B..
-int tmp0,tmp1;
-check_GA(p,p->his[b]);//get four binary digits of b
-p->BL[0] = p->AL[0];
-p->BL[1] = p->AL[1];
-p->BL[2] = p->AL[2];
-p->BL[3] = p->AL[3];
-check_GA(p,p->his[a]);
+    int tmp0,tmp1;
+    check_GA(p,p->his[b]);//get four binary digits of b
+    p->BL[0] = p->AL[0];
+    p->BL[1] = p->AL[1];
+    p->BL[2] = p->AL[2];
+    p->BL[3] = p->AL[3];
+    check_GA(p,p->his[a]);
 
-if(R>=0.5)//A and B change first 2 digits
-  {
-  tmp0 = p->BL[0];
-  tmp1 = p->BL[1];
-  p->BL[0] = p->AL[0];
-  p->BL[1] = p->AL[1];
-  p->AL[0] = tmp0;
-  p->AL[1] = tmp1;
-  }
-else//A and B change last 2 digits
-  {
-  tmp0 = p->BL[2];
-  tmp1 = p->BL[3];
-  p->BL[2] = p->AL[2];
-  p->BL[3] = p->AL[3];
-  p->AL[2] = tmp0;
-  p->AL[3] = tmp1;
-  }
+    if(R>=0.5)//A and B change first 2 digits
+    {
+        tmp0 = p->BL[0];
+        tmp1 = p->BL[1];
+        p->BL[0] = p->AL[0];
+        p->BL[1] = p->AL[1];
+        p->AL[0] = tmp0;
+        p->AL[1] = tmp1;
+    }
+    else//A and B change last 2 digits
+    {
+        tmp0 = p->BL[2];
+        tmp1 = p->BL[3];
+        p->BL[2] = p->AL[2];
+        p->BL[3] = p->AL[3];
+        p->AL[2] = tmp0;
+        p->AL[3] = tmp1;
+    }
   
-p->his[a] = rtrn_GA(p->AL[0],p->AL[1],p->AL[2],p->AL[3]);
-p->his[b] = rtrn_GA(p->BL[0],p->BL[1],p->BL[2],p->BL[3]);
+    p->his[a] = rtrn_GA(p->AL[0],p->AL[1],p->AL[2],p->AL[3]);
+    p->his[b] = rtrn_GA(p->BL[0],p->BL[1],p->BL[2],p->BL[3]);
 
-if(R<mut_r)//judge if mutation will happen..
-  {
-  if(p->AL[mut_p]==1)
+    if(R<mut_r)//judge if mutation will happen..
     {
-    p->AL[mut_p]=0;
+        if(p->AL[mut_p]==1)
+            p->AL[mut_p]=0;
+        else
+            p->AL[mut_p]=1;
+        
+        printf("Mutation happened at position %d.\n",mut_p);
     }
-  else
-    {
-    p->AL[mut_p]=1;
-    }
-  printf("Mutation happened at position %d.\n",mut_p);
-  }
   
-p->his[son] = rtrn_GA(p->AL[0],p->AL[1],p->AL[2],p->AL[3]);
+    p->his[son] = rtrn_GA(p->AL[0],p->AL[1],p->AL[2],p->AL[3]);
 }
 
 void print_GA(GRP* p, int n)// print all the values out..
